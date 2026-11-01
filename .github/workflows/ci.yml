@@ -5,6 +5,23 @@ on: push
 jobs:
  carregar_backend:
    runs-on: ubuntu-latest
+
+   services:
+     postgres:
+       image: postgres:18
+       env:
+         POSTGRES_USER: postgres
+         POSTGRES_PASSWORD: postgres
+         POSTGRES_DB: sistemametodosageis
+
+       ports:
+        - 5432:5432 #[porta runner: porta container]
+       options: >-
+         --health-cmd pg_isready
+         --health-interval 10s
+         --health-timeout 5s
+         --health-retries 5   
+
    steps:
      - name: Baixar o código
        uses: actions/checkout@v4
