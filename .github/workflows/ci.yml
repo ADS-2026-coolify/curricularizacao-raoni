@@ -37,3 +37,23 @@ jobs:
 
      - name: compilar backend
        run: cd backend && ./mvnw package
+
+ carregar_frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: baixar o código
+        uses: actions/checkout@v4
+
+      - name: instalar node 20
+        uses: actions/setup-node@v4
+        with:
+           node-version: '20' # Informe a versão do Node desejada (20)
+           cache: 'npm'
+           cache-dependency-path: frontend/package-lock.json
+
+      - name: conferir node
+        run: node -v
+
+      - name: compilar frontend
+        working-directory: frontend
+        run: npm ci && npm run build       
