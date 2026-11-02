@@ -1,5 +1,8 @@
 package fema.metodosageis.SistemaMetodosAgeis.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum Experiencia {
     NENHUMA("Nunca ouvi falar"),
     BASICA("Já ouvi falar, conheço por cima"),
@@ -11,10 +14,6 @@ public enum Experiencia {
 
     Experiencia(String descricao) {
         this.descricao = descricao;
-    }
-
-    public String getDescricao() {
-        return descricao;
     }
 
 }
