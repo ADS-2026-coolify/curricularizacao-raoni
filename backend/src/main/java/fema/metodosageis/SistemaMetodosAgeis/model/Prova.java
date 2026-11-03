@@ -7,6 +7,7 @@
     import lombok.Data;
     import lombok.EqualsAndHashCode;
     import lombok.RequiredArgsConstructor;
+    import lombok.Setter;
 
     import java.time.LocalDateTime;
     import java.util.List;
@@ -15,6 +16,7 @@
     @Data
     @RequiredArgsConstructor
     @EqualsAndHashCode
+    @Setter
     public class Prova {
 
         @Id
