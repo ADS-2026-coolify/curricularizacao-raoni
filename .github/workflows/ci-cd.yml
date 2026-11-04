@@ -1,67 +1,72 @@
+
 name: CI/CD Pipeline
 
 on: push
 
 jobs:
- carregar_backend:
-   runs-on: ubuntu-latest
-
-   services:
-     postgres:
-       image: postgres:18
-       env:
-         POSTGRES_USER: postgres
-         POSTGRES_PASSWORD: postgres
-         POSTGRES_DB: sistemametodosageis
-
-       ports:
-        - 5432:5432 #[porta runner: porta container]
-       options: >-
-         --health-cmd pg_isready
-         --health-interval 10s
-         --health-timeout 5s
-         --health-retries 5   
-
-   steps:
-     - name: Baixar o código
-       uses: actions/checkout@v4
- 
-     - name: instalar java 21
-       uses: actions/setup-java@v4
-       with:
-         distribution: 'temurin'
-         java-version: '21'
-
-     - name: checar java
-       run: java -version
-
-     - name: compilar backend
-       run: cd backend && ./mvnw package
-
- carregar_frontend:
+  carregar_backend:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sistemametodosageis
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
-      - name: baixar o código
+      - name: Baixar o código
         uses: actions/checkout@v4
 
-      - name: instalar node 20
+      - name: Instalar Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Checar Java
+        run: java -version
+
+      - name: Compilar backend
+        run: cd backend && ./mvnw package
+
+  carregar_frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Baixar o código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node 20
         uses: actions/setup-node@v4
         with:
-           node-version: '20' # Informe a versão do Node desejada (20)
-           cache: 'npm'
-           cache-dependency-path: frontend/package-lock.json
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: conferir node
+      - name: Conferir Node
         run: node -v
 
-      - name: compilar frontend
+      - name: Compilar frontend
         working-directory: frontend
-        run: npm ci && npm run build       
+        run: npm ci && npm run build
 
   deploy:
     needs: [carregar_backend, carregar_frontend]
     if: github.ref == 'refs/heads/main'
-     runs-on: 'ubuntu-latest'
-     steps:
-       - name: webhook deploy
-         run: curl -H "Bearer: 2|0PfrEYtRsQkOMGot1oPGslJiAoiWJR9KKLsS71Ls041da773" https://computacao.fema.edu.br/api/v1/deploy?uuid=kows78zwu3oocgffxdod41ia&force=false      
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Webhook deploy
+        run: |
+          curl --fail \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            "${{ vars.COOLIFY_WEBHOOK_BACKEND }}"
