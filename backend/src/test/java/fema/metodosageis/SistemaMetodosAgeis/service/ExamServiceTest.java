@@ -4,6 +4,7 @@ package fema.metodosageis.SistemaMetodosAgeis.service;
 import fema.metodosageis.SistemaMetodosAgeis.config.JwtService;
 import fema.metodosageis.SistemaMetodosAgeis.dto.pergunta.AlternativaDTO;
 import fema.metodosageis.SistemaMetodosAgeis.dto.pergunta.PerguntaDTO;
+import fema.metodosageis.SistemaMetodosAgeis.dto.prova.FinalizarProvaDTO;
 import fema.metodosageis.SistemaMetodosAgeis.dto.prova.ProvaDTO;
 import fema.metodosageis.SistemaMetodosAgeis.dto.usuario.CriarUsuarioDTO;
 import fema.metodosageis.SistemaMetodosAgeis.dto.usuario.UsuarioCriadoDTO;
@@ -27,6 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import org.springframework.security.access.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -181,9 +183,9 @@ class ExamServiceTest {
 
         when(tentativaProvaRepository.findById(1L)).thenReturn(Optional.of(tentativa));
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> examService.carregarProva(1L));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> examService.carregarProva(1L)); //assertThrows permite classes filhas
         //verifico se a mensagem do erro é a mesma que a do service
-        assertEquals("Você não pertence a essa tentativa", exception.getMessage());
+        assertEquals("Você não pertence a essa tentativa", exception.getMessage()); // por isso se faz importante o uso do assertEquals para garantir que o erro é esse mesmo
 
         //verifico se o findById foi chamado com esse exato parametro
         verify(tentativaProvaRepository).findById(1L);
@@ -246,4 +248,76 @@ class ExamServiceTest {
 
     }
 
+    @ParameterizedTest
+    @ValueSource(longs = {-1,0})
+    @NullSource
+    void finalizarProva_deveLancarIllegalArgumentQuandoIdInvalido (Long id) {
+        FinalizarProvaDTO request = new FinalizarProvaDTO(id, null);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> examService.finalizarProva(request));
+        assertEquals("Id inválido", exception.getMessage());
+        verify(tentativaProvaRepository, never()).findById(any());
+    }
+
+
+    @Test
+    void finalizarProva_deveLancarIllegalArgumentQuandoUsuarioNaoLogado () {
+        FinalizarProvaDTO request = new FinalizarProvaDTO(1L, null);
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> examService.finalizarProva(request));
+        assertEquals("Id de usuario não existe", exception.getMessage());
+        verify(tentativaProvaRepository, never()).findById(any());
+    }
+
+    @Test
+    void finalizarProva_deveLancarEntityNotFoundQuandoTentativaNaoEncontrada () {
+        var token = new UsernamePasswordAuthenticationToken("1", null);
+        SecurityContextHolder.getContext().setAuthentication(token); //mocko um falso user logado
+
+        FinalizarProvaDTO request = new FinalizarProvaDTO(10L, null);
+
+        when(tentativaProvaRepository.findById(10L)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> examService.finalizarProva(request));
+        assertEquals("Impossivel encontrar essa tentativa", exception.getMessage());
+        verify(tentativaProvaRepository).findById(any());
+    }
+
+    @Test
+    void finalizarProva_deveLancarAccessDeniedQuandoUsuarioLogadoNaoParticipaDaTentativa () {
+        var token = new UsernamePasswordAuthenticationToken("1", null);
+        SecurityContextHolder.getContext().setAuthentication(token);
+
+        FinalizarProvaDTO request = new FinalizarProvaDTO(1L, null);
+
+        TentativaProva tentativa = new TentativaProva();
+        Usuario usuario = new Usuario();
+        usuario.setId(2L);
+        tentativa.setUsuario(usuario);
+
+        when(tentativaProvaRepository.findById(1L)).thenReturn(Optional.of(tentativa)); //imports diferentes da mesma exception podem dar erro
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class, () -> examService.finalizarProva(request));
+        assertEquals("Você não pertence a essa tentativa", exception.getMessage());
+        verify(tentativaProvaRepository, never()).save(any());
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = StatusProva.class, names = "EM_ANDAMENTO", mode = EnumSource.Mode.EXCLUDE)
+    void finalizarProva_deveLancarIllegalArgumentQuandoStatusTentativaForDiferenteDeEmAndamento (StatusProva statusProva) {
+        var token = new UsernamePasswordAuthenticationToken("1", null);
+        SecurityContextHolder.getContext().setAuthentication(token);
+
+        FinalizarProvaDTO request = new FinalizarProvaDTO(1L, null);
+
+        TentativaProva tentativa = new TentativaProva();
+        Usuario usuario = new Usuario();
+        usuario.setId(1L);
+        tentativa.setUsuario(usuario);
+        tentativa.setStatus(statusProva);
+
+        when(tentativaProvaRepository.findById(1L)).thenReturn(Optional.of(tentativa));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> examService.finalizarProva(request));
+        assertEquals("Esta prova foi encerrada pelo organizador", exception.getMessage());
+
+        verify(tentativaProvaRepository, never()).save(any());
+    }
 }
