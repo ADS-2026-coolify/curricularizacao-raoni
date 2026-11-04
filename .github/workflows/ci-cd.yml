@@ -67,6 +67,6 @@ jobs:
     steps:
       - name: Webhook deploy
         run: |
-          curl --fail \
+          curl --fail-with-body \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
             "${{ vars.COOLIFY_WEBHOOK_BACKEND }}"
