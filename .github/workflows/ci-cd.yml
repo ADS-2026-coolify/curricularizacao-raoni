@@ -59,11 +59,14 @@ jobs:
         working-directory: frontend
         run: npm ci && npm run build
 
-  deploy:
+    deploy:
     needs: [carregar_backend, carregar_frontend]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
       - name: Webhook deploy
-        run: curl -H "Bearer: 2|0PfrEYtRsQkOMGot1oPGslJiAoiWJR9KKLsS71Ls041da773" run: curl -H "Bearer: SEU_TOKEN" "https://computacao.fema.edu.br/api/v1/deploy?uuid=SEU_UUID&force=false" 
+        run: |
+          curl --fail \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            "${{ vars.COOLIFY_WEBHOOK_BACKEND }}"
