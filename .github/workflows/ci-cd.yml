@@ -59,7 +59,7 @@ jobs:
         working-directory: frontend
         run: npm ci && npm run build
 
-    deploy:
+  deploy:
     needs: [carregar_backend, carregar_frontend]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
