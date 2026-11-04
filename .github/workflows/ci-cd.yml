@@ -1,4 +1,4 @@
-name: compilar_aplicacao
+name: CI/CD Pipeline
 
 on: push
 
@@ -57,3 +57,11 @@ jobs:
       - name: compilar frontend
         working-directory: frontend
         run: npm ci && npm run build       
+
+  deploy:
+    needs: [carregar_backend, carregar_frontend]
+    if: github.ref == 'refs/heads/main'
+     runs-on: 'ubuntu-latest'
+     steps:
+       - name: webhook deploy
+         run: curl -H "Bearer: 2|0PfrEYtRsQkOMGot1oPGslJiAoiWJR9KKLsS71Ls041da773" https://computacao.fema.edu.br/api/v1/deploy?uuid=kows78zwu3oocgffxdod41ia&force=false      
