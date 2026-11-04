@@ -55,6 +55,7 @@ public class ExamService {
             usuario.setSexo(Sexo.valueOf(dto.sexo()));
             usuario.setTipoUsuario(TipoUsuario.ALUNO);
             usuario = usuarioRepository.save(usuario);
+
             TentativaProva tentativaProva = new TentativaProva();
             tentativaProva.setUsuario(usuario);
             tentativaProva.setProva(prova);
@@ -62,6 +63,7 @@ public class ExamService {
             tentativaProva.setStatus(StatusProva.EM_ANDAMENTO);
             tentativaProva.setFim(null);
             tentativaProva = tentativaProvaRepository.save(tentativaProva);
+
             String token = jwtService.gerarTokenDefinitivo(usuario);
             return new UsuarioCriadoDTO(token, tentativaProva.getId());
         }else {
