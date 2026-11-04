@@ -66,4 +66,4 @@ jobs:
 
     steps:
       - name: Webhook deploy
-        run: curl -H "Bearer: 2|0PfrEYtRsQkOMGot1oPGslJiAoiWJR9KKLsS71Ls041da773" https://computacao.fema.edu.br/api/v1/deploy?uuid=kows78zwu3oocgffxdod41ia&force=false  
+        run: curl -H "Bearer: 2|0PfrEYtRsQkOMGot1oPGslJiAoiWJR9KKLsS71Ls041da773" run: curl -H "Bearer: SEU_TOKEN" "https://computacao.fema.edu.br/api/v1/deploy?uuid=SEU_UUID&force=false" 
