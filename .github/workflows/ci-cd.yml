@@ -1,4 +1,3 @@
-
 name: CI/CD Pipeline
 
 on: push
@@ -65,8 +64,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Webhook deploy
+      - name: Webhook deploy backend
         run: |
           curl --fail-with-body \
             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
             "${{ vars.COOLIFY_WEBHOOK_BACKEND }}"
+
+      - name: Webhook deploy frontend
+        run: |
+          curl --fail-with-body \
+            -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}" \
+            "${{ vars.COOLIFY_WEBHOOK_FRONTEND }}"
